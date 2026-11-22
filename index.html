@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#174d3b">
+  <title>Amigo Secreto da Família</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-rounded, "Segoe UI", system-ui, sans-serif;
+      color: #173f32;
+      background: #f6f0e4;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px 16px;
+      background:
+        radial-gradient(circle at 10% 10%, #ffffff 0 2px, transparent 3px),
+        radial-gradient(circle at 90% 20%, #ffffff 0 2px, transparent 3px),
+        radial-gradient(circle at 15% 90%, #ffffff 0 2px, transparent 3px),
+        linear-gradient(145deg, #f9f4e9, #eee5d3);
+      background-size: 90px 90px, 120px 120px, 110px 110px, auto;
+    }
+
+    main {
+      width: min(100%, 560px);
+      padding: clamp(24px, 6vw, 40px);
+      text-align: center;
+      background: #fffdf8;
+      border: 1px solid #e7ddca;
+      border-radius: 28px;
+      box-shadow: 0 20px 60px #244c3920;
+    }
+
+    .decoration { font-size: 42px; line-height: 1; }
+
+    h1 {
+      margin: 12px 0 8px;
+      color: #b42d36;
+      font-family: Georgia, serif;
+      font-size: clamp(32px, 8vw, 46px);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      margin: 0 0 28px;
+      color: #65756d;
+      line-height: 1.5;
+    }
+
+    .names {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .name-button {
+      min-height: 48px;
+      padding: 12px 8px;
+      color: #174d3b;
+      font-weight: 700;
+      background: #f4f0e6;
+      border: 1px solid #ded5c3;
+      border-radius: 14px;
+      transition: transform 120ms, background 120ms;
+    }
+
+    .name-button:hover, .name-button:focus-visible {
+      background: #e5efe8;
+      transform: translateY(-2px);
+      outline: 2px solid #2c7256;
+      outline-offset: 2px;
+    }
+
+    .hidden { display: none !important; }
+
+    .greeting {
+      margin: 0 0 20px;
+      font-size: 20px;
+    }
+
+    .wheel-wrap {
+      position: relative;
+      width: min(100%, 360px);
+      margin: 0 auto 24px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 10px 16px #173f3225);
+    }
+
+    .pointer {
+      position: absolute;
+      top: -7px;
+      left: 50%;
+      width: 0;
+      height: 0;
+      transform: translateX(-50%);
+      border-right: 15px solid transparent;
+      border-left: 15px solid transparent;
+      border-top: 28px solid #f0b83d;
+      filter: drop-shadow(0 3px 2px #0003);
+      z-index: 1;
+    }
+
+    .primary {
+      width: 100%;
+      min-height: 54px;
+      padding: 14px 22px;
+      color: white;
+      font-weight: 800;
+      font-size: 17px;
+      background: #b42d36;
+      border: 0;
+      border-radius: 16px;
+      box-shadow: 0 6px 0 #85212a;
+    }
+
+    .primary:hover { background: #c53640; }
+    .primary:active { transform: translateY(3px); box-shadow: 0 3px 0 #85212a; }
+    .primary:disabled { cursor: wait; opacity: .7; transform: none; }
+
+    .secondary {
+      margin-top: 20px;
+      padding: 8px 14px;
+      color: #65756d;
+      background: transparent;
+      border: 0;
+      text-decoration: underline;
+    }
+
+    .result {
+      margin: 4px 0 24px;
+      padding: 24px 16px;
+      background: #edf5ef;
+      border: 2px dashed #74a487;
+      border-radius: 20px;
+      animation: appear 500ms ease-out;
+    }
+
+    .result small {
+      display: block;
+      margin-bottom: 8px;
+      color: #567161;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .result strong {
+      display: block;
+      color: #b42d36;
+      font-family: Georgia, serif;
+      font-size: clamp(30px, 8vw, 42px);
+      overflow-wrap: anywhere;
+    }
+
+    .result p { margin: 12px 0 0; color: #65756d; }
+
+    .footer {
+      margin: 24px 0 0;
+      color: #8a918c;
+      font-size: 13px;
+    }
+
+    @keyframes appear {
+      from { opacity: 0; transform: scale(.85); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 1ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="decoration" aria-hidden="true">✦</div>
+    <h1>Amigo Secreto</h1>
+    <p class="subtitle">Escolha quem você é, gire a roleta e descubra quem você tirou.</p>
+
+    <section id="selection" aria-labelledby="selection-title">
+      <h2 id="selection-title" class="hidden">Escolha seu nome</h2>
+      <div id="names" class="names"></div>
+    </section>
+
+    <section id="game" class="hidden" aria-live="polite">
+      <p id="greeting" class="greeting"></p>
+      <div id="wheel-wrap" class="wheel-wrap">
+        <div class="pointer" aria-hidden="true"></div>
+        <canvas id="wheel" width="720" height="720" role="img" aria-label="Roleta com os possíveis amigos secretos"></canvas>
+      </div>
+      <div id="result" class="result hidden">
+        <small>Você tirou</small>
+        <strong id="result-name"></strong>
+        <p>Shhh! Não conta para ninguém.</p>
+      </div>
+      <button id="spin" class="primary" type="button">Girar a roleta</button>
+      <button id="back" class="secondary" type="button">Escolher outro nome</button>
+    </section>
+
+    <p class="footer">Feito pra família Meneses Mestres</p>
+  </main>
+
+  <script>
+    const draw = {
+      "Caio": "Luluba",
+      "Érica Gata": "Jubsleuda",
+      "Rique": "Dotô Cati",
+      "Teteca": "Caio",
+      "Zeca Pêra": "Rique",
+      "Luluba": "Dona Margô",
+      "Dotô Cati": "Helenilda",
+      "Jubsleuda": "Teteca",
+      "Dona Margô": "Zeca Pêra",
+      "Helenilda": "Érica Gata"
+    };
+
+    const participants = Object.keys(draw);
+    const selection = document.querySelector("#selection");
+    const game = document.querySelector("#game");
+    const namesContainer = document.querySelector("#names");
+    const greeting = document.querySelector("#greeting");
+    const result = document.querySelector("#result");
+    const resultName = document.querySelector("#result-name");
+    const spinButton = document.querySelector("#spin");
+    const backButton = document.querySelector("#back");
+    const canvas = document.querySelector("#wheel");
+    const context = canvas.getContext("2d");
+    const colors = ["#b42d36", "#1f624a", "#e5ad3c", "#d9685e", "#428064", "#c94a50", "#276f55", "#e0bb60", "#b75a48"];
+    const tau = Math.PI * 2;
+    let currentName = "";
+    let candidates = [];
+    let rotation = 0;
+    let spinning = false;
+
+    participants.forEach(name => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "name-button";
+      button.textContent = name;
+      button.addEventListener("click", () => selectName(name));
+      namesContainer.appendChild(button);
+    });
+
+    function selectName(name) {
+      currentName = name;
+      candidates = participants.filter(participant => participant !== name);
+      rotation = 0;
+      greeting.textContent = `Olá, ${name}!`;
+      result.classList.add("hidden");
+      selection.classList.add("hidden");
+      game.classList.remove("hidden");
+      spinButton.classList.remove("hidden");
+      spinButton.disabled = false;
+      spinButton.textContent = "Girar a roleta";
+      drawWheel();
+
+      if (readResult(name)) {
+        showResult();
+      }
+    }
+
+    function readResult(name) {
+      try {
+        const saved = localStorage.getItem(`amigo-secreto-v2:${name}`);
+        return saved === draw[name] ? saved : "";
+      } catch {
+        return "";
+      }
+    }
+
+    function saveResult() {
+      try {
+        localStorage.setItem(`amigo-secreto-v2:${currentName}`, draw[currentName]);
+      } catch {}
+    }
+
+    function drawWheel() {
+      const size = canvas.width;
+      const center = size / 2;
+      const radius = center - 12;
+      const arc = tau / candidates.length;
+      context.clearRect(0, 0, size, size);
+
+      candidates.forEach((name, index) => {
+        const start = -Math.PI / 2 - arc / 2 + index * arc + rotation;
+        const end = start + arc;
+        context.beginPath();
+        context.moveTo(center, center);
+        context.arc(center, center, radius, start, end);
+        context.closePath();
+        context.fillStyle = colors[index % colors.length];
+        context.fill();
+        context.strokeStyle = "#fffdf8";
+        context.lineWidth = 5;
+        context.stroke();
+
+        context.save();
+        context.translate(center, center);
+        context.rotate(start + arc / 2);
+        context.textAlign = "right";
+        context.textBaseline = "middle";
+        context.fillStyle = name === "Zeca Pêra" && colors[index % colors.length] === "#e5ad3c" ? "#173f32" : "#ffffff";
+        context.font = "bold 27px system-ui, sans-serif";
+        context.fillText(name, radius - 30, 0, radius * 0.62);
+        context.restore();
+      });
+
+      context.beginPath();
+      context.arc(center, center, 55, 0, tau);
+      context.fillStyle = "#fffdf8";
+      context.fill();
+      context.lineWidth = 8;
+      context.strokeStyle = "#e0d5c0";
+      context.stroke();
+      context.fillStyle = "#b42d36";
+      context.font = "42px Georgia, serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText("★", center, center + 2);
+    }
+
+    function spin() {
+      if (spinning) return;
+      spinning = true;
+      result.classList.add("hidden");
+      spinButton.disabled = true;
+      spinButton.textContent = "Girando...";
+
+      const arc = tau / candidates.length;
+      const targetIndex = candidates.indexOf(draw[currentName]);
+      const desiredRotation = -targetIndex * arc;
+      const extraRotation = ((desiredRotation - rotation) % tau + tau) % tau;
+      const startRotation = rotation;
+      const finalRotation = rotation + tau * 6 + extraRotation;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const duration = reducedMotion ? 100 : 4300;
+      const startedAt = performance.now();
+
+      function animate(now) {
+        const progress = Math.min((now - startedAt) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 4);
+        rotation = startRotation + (finalRotation - startRotation) * eased;
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          rotation = desiredRotation;
+          spinning = false;
+          saveResult();
+          showResult();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function showResult() {
+      const targetIndex = candidates.indexOf(draw[currentName]);
+      rotation = -(targetIndex * (tau / candidates.length));
+      drawWheel();
+      resultName.textContent = draw[currentName];
+      result.classList.remove("hidden");
+      spinButton.classList.add("hidden");
+      result.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "center"
+      });
+    }
+
+    function goBack() {
+      if (spinning) return;
+      game.classList.add("hidden");
+      selection.classList.remove("hidden");
+      result.classList.add("hidden");
+      currentName = "";
+    }
+
+    spinButton.addEventListener("click", spin);
+    backButton.addEventListener("click", goBack);
+  </script>
+</body>
+</html>
